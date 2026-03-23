@@ -15,6 +15,17 @@ app.use(cors());
 app.use("/poll", pollRoutes);
 app.use("/admin", adminRoutes);
 
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
-});
+// 🔥 START SERVER ONLY AFTER REDIS CONNECTS
+const startServer = async () => {
+  try {
+    await connectRedis();
+
+    app.listen(3000, () => {
+      console.log("Server running on port 3000");
+    });
+  } catch (err) {
+    console.error("Failed to start server:", err);
+  }
+};
+
+startServer();
