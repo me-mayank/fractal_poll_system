@@ -49,6 +49,10 @@ export const vote = async (req, res) => {
 export const getResults = async (req, res) => {
   const state = await redis.get(STATE_KEY);
 
+  if (state === "IDLE") {
+    return res.json({ status: "IDLE" });
+  }
+
   if (state === "ACTIVE") {
     return res.json({ status: "Voting in progress" });
   }
