@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import { connectRedis } from "./config/redis.config.js";
 import dotenv from "dotenv";
 
 import pollRoutes from "./routes/poll.routes.js";
