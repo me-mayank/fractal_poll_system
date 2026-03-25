@@ -49,32 +49,36 @@ export const vote = async (req, res) => {
 export const getResults = async (req, res) => {
   const state = await redis.get(STATE_KEY);
 
-  if (state === "IDLE") {
-    return res.json({ status: "IDLE" });
-  }
-
   if (state === "ACTIVE") {
     return res.json({ status: "Voting in progress" });
   }
 
-  if (state !== "ENDED") {
-    return res.json({ status: "No poll running" });
+  if (state === "IDLE") {
+    return res.json({ status: "IDLE" });
   }
 
-  const data = await redis.hGetAll(POLL_KEY);
+  if (state === "ENDED") {
+    const data = await redis.hGetAll(POLL_KEY);
 
-  let total = 0;
-  for (let key in data) {
-    total += parseInt(data[key]);
+    const totalVotes = await redis.sCard(USER_KEY); // 🔥 NEW
+
+    let total = 0;
+    for (let key in data) {
+      total += parseInt(data[key]);
+    }
+
+    let result = {};
+    for (let key in data) {
+      const count = parseInt(data[key]);
+      result[key] = total === 0 ? 0 : ((count / total) * 100).toFixed(2);
+    }
+
+    return res.json({
+      status: "ENDED",
+      result,
+      totalVotes, // 🔥 SEND THIS
+    });
   }
-
-  let result = {};
-  for (let key in data) {
-    const count = parseInt(data[key]);
-    result[key] = total === 0 ? 0 : ((count / total) * 100).toFixed(2);
-  }
-
-  res.json({ status: "ENDED", result });
 };
 
 // 🔁 Reset
